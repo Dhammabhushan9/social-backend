@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Optional: build or dist folders
+dis/
+build/
+
+# Optional: database files
+*.sqlite
+*.sqlite3
+
+# IDE/editor-specific
+.vscode/
+.idea/
+*.swp
