@@ -60,8 +60,8 @@ app.post("/signin", async (req, res):Promise<any> => {
 
     const user = await userModel.findOne({ username });
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    //@ts-ignore
+    const isPasswordValid = await bcrypt.compare(password, user.password) ;
     if (!isPasswordValid) return res.status(401).json({ error: "Incorrect password" });
 
     const token = jwt.sign({ id: user._id }, JWT_SECRET);
@@ -205,10 +205,57 @@ app.get("/follow",Middleware,async(req,res):Promise<any>=>{
     }
 */
 })
+app.post("/follow", Middleware, async (req, res): Promise<any> => {
+    //@ts-ignore
+    const userId = req.userId;                // user 1
+    const followingId = req.body.followingId;  // user 2
 
+    try {
+        // Find user 1
+        const user = await userModel.findById(userId);
 
-app.post("/follow",Middleware, async(req, res):Promise<any> => {
- 
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if user 1 is already following user 2
+        const isFollowing = user.following.includes(followingId);
+
+        if (!isFollowing) {
+            // User is not following, so follow the user
+            await userModel.updateOne(
+                { _id: userId },
+                { $push: { following: followingId } }
+            );
+
+            // Add user 1 to user 2's followers array
+            await userModel.updateOne(
+                { _id: followingId },
+                { $push: { followers: userId } }
+            );
+
+            return res.status(200).json({ message: "You are now following this user" });
+        } else {
+            // User is already following, so unfollow the user
+            await userModel.findByIdAndUpdate(
+                userId,
+                { $pull: { following: followingId } }
+            );
+
+            // Remove user 1 from user 2's followers list
+            await userModel.findByIdAndUpdate(
+                followingId,
+                { $pull: { followers: userId } }
+            );
+
+            return res.status(200).json({ message: "You have unfollowed this user" });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message: "An error occurred",
+            error: error.message
+        });
+    }
 });
 
 // ==============================
