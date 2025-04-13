@@ -1,6 +1,6 @@
 import express from "express";
 import bcrypt, { hash } from "bcrypt";
-import { promise, z } from "zod";
+import { makeIssue, promise, z } from "zod";
 import jwt from "jsonwebtoken";
 
 import { userModel, postModel, likeModel, commentModel,  } from "./db";
@@ -67,6 +67,28 @@ app.post("/signin", async (req, res):Promise<any> => {
     const token = jwt.sign({ id: user._id }, JWT_SECRET);
     res.status(200).json({ token });
 });
+
+
+/////___________________________________________________>
+//serch user for follow
+
+app.get("/search-users",Middleware,async(req,res):Promise<any>=>{
+        const query = req.query.query;
+
+         try{
+            if(! query){
+                res.status(400).json({message:"search query is needed"})
+            }
+
+            const users= await userModel.find({
+                username:{$regex: query,$options: "i"  }
+            });
+            res.status(200).json(users);
+         } catch (error) {
+            console.error("User search error:", error);
+            res.status(500).json({ message: "Internal Server Error" });
+          }
+})
 
 // ==============================
 // 📝 Post Routes
@@ -153,7 +175,7 @@ app.post("/comment", Middleware, async (req, res) => {
 });
 
 // get all the comment on the post
-app.get("/comment",Middleware,async(req,res):Promise<any>{
+app.get("/comment",Middleware,async(req,res):Promise<any>=>{
     const postId=req.body.postId;
     
     try{
@@ -196,30 +218,13 @@ app.post("/like", Middleware, async (req, res) => {
 // ==============================
 // 👥 Follow Routes
 // ==============================
+
 app.get("/follow",Middleware,async(req,res):Promise<any>=>{
     //@ts-ignore
     const userId=req.userId;
+    
+     
 
-   /* try{
-        const followingUsers= await .find({
-            followerId:userId
-        })
-
-        if(followingUsers){
-            return res.json({
-                followig:followingUsers
-            })
-        }else{
-            return res.json({
-                message:"follwing list are empty"
-            })
-        }
-    }catch(error){
-        res.json({
-            error:error
-        })
-    }
-*/
 })
 app.post("/follow", Middleware, async (req, res): Promise<any> => {
     //@ts-ignore
