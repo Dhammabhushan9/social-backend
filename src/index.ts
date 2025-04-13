@@ -152,6 +152,22 @@ app.post("/comment", Middleware, async (req, res) => {
     }
 });
 
+// get all the comment on the post
+app.get("/comment",Middleware,async(req,res):Promise<any>{
+    const postId=req.body.postId;
+    
+    try{
+        const comment= await commentModel.find({
+                postId
+        }).populate("userId").sort({ createdAt: -1 });    
+        return res.json({
+            comment
+        })
+    }catch(error){
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+
+})
 // ==============================
 // ❤️ Like Routes
 // ==============================
