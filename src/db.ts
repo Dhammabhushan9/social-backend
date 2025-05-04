@@ -43,8 +43,7 @@ const Post = new Schema({
     required: true
   }
 }, { timestamps: true });
-
-// Like Schema
+ 
 const Like = new Schema({
   userId: {
     type: mongoose.Types.ObjectId,
