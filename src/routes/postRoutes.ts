@@ -1,6 +1,7 @@
 import express from "express";
 import { Middleware } from "../Middleware";
-import { postModel } from "../db";
+import { likeModel, postModel } from "../db";
+import { error } from "console";
 
 const router = express.Router();
 
@@ -44,5 +45,48 @@ router.delete("/:postId", Middleware, async (req, res): Promise<any> => {
         res.status(500).json({ error: "Failed to delete post", details: error });
     }
 });
+
+router.get("/like/:id",Middleware,async(req,res)=>{
+    const postId= req.params.id;
+
+    try{
+        const postLike= await likeModel.find({
+            postId
+        })
+
+        res.json({
+            like:postLike,
+            count:postLike.length
+        })
+    }catch(err){
+        res.json({
+            error:err
+        })
+    }
+})
+
+
+router.post("/like/:id", Middleware, async (req, res):Promise<any> => {
+    const postId = req.params.id;
+    // @ts-ignore
+    const userId = req.userId;
+
+    try {
+        const isLiked = await likeModel.findOne({ userId, postId });
+
+        if (!isLiked) {
+            
+            await likeModel.create({ userId, postId });
+            return res.json({ message: "Liked the post" });
+        } else {
+           
+            await likeModel.deleteOne({ userId, postId });
+            return res.json({ message: "Unliked the post" });
+        }
+    } catch (err) {
+        return res.status(500).json({ error:err});
+    }
+});
+
 
 export default router;

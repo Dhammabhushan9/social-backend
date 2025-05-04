@@ -4,10 +4,12 @@ import { commentModel } from "../db";
 
 const router = express.Router();
 
-router.post("/", Middleware, async (req, res): Promise<any> => {
+router.post("/:id", Middleware, async (req, res): Promise<any> => {
     //@ts-ignore
+    // add userId in the request body
     const userId = req.userId;
-    const { postId, comment } = req.body;
+    const postId= req.params.id;
+    const   comment   = req.body;
 
     try {
         await commentModel.create({ userId, postId, comment });
@@ -16,16 +18,19 @@ router.post("/", Middleware, async (req, res): Promise<any> => {
         res.status(400).json({ error });
     }
 });
-
-router.get("/", Middleware, async (req, res): Promise<any> => {
-    const postId = req.body.postId;
-
+// not working // GET /api/comments/:postId
+router.get("/:id", async (req, res) => {
     try {
-        const comments = await commentModel.find({ postId }).populate("userId").sort({ createdAt: -1 });
-        return res.json({ comments });
+      const comments = await commentModel.find({ postId: req.params.id })
+        .populate("userId", "username")  
+        .sort({ createdAt: -1 });  
+  
+      res.status(200).json(comments);
     } catch (error) {
-        res.status(500).json({ message: "Internal Server Error" });
+      console.error("Failed to fetch comments:", error);
+      res.status(500).json({ error: "Failed to fetch comments" });
     }
-});
+  }); 
+  
 
 export default router;

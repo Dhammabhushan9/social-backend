@@ -5,26 +5,31 @@ import { userModel } from "../db";
 const router = express.Router();
 
 // Search users
-router.get("/search-users", Middleware, async (req, res): Promise<any>=> {
-    const query = req.query.query;
+router.get("/search-users", Middleware, async (req, res): Promise<any> => {
+    const query = req.query.query as string;
 
     if (!query) {
         return res.status(400).json({ message: "Search query is needed" });
     }
 
     try {
-        const users = await userModel.find({ username: { $regex: query, $options: "i" } });
-        res.status(200).json(users);
+        const users = await userModel.find({
+            username: { $regex: query, $options: "i" }
+        }).select("-password"); // exclude password field
+
+        return res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ message: "Internal Server Error" });
+        console.error("Search Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
 });
 
+
 // Follow/unfollow
-router.post("/follow", Middleware, async (req, res):Promise<any> => {
+router.post("/follow/:id", Middleware, async (req, res):Promise<any> => {
     //@ts-ignore
     const userId = req.userId;
-    const followingId = req.body.followingId;
+    const followingId = req.params.id;
 
     try {
         const user = await userModel.findById(userId);
